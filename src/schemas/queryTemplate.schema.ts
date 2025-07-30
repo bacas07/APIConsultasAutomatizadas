@@ -11,6 +11,11 @@ const QueryTemplateSchema = new Schema<QueryTemplateMongoose>(
         type: { type: String, required: true },
       },
     ],
+    databaseConnectionId: {
+      type: Schema.Types.ObjectId,
+      ref: 'DatabaseConnection',
+      required: true,
+    },
   },
   {
     timestamps: true,
