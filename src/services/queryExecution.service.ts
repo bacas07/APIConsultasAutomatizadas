@@ -1,127 +1,85 @@
+import { Pool, QueryResult } from 'pg';
+import ApiError from '../errors/error.js';
 import {
-  QueryTemplateMongoose,
   ScheduledQueryMongoose,
-  QueryResultHistoryMongoose,
+  QueryTemplateMongoose,
   DatabaseConnectionMongoose,
 } from '../types/types.js';
-import QueryResultHistoryService from '../models/queryResultHistory.model.js';
-import ApiError from '../errors/error.js';
-import { Types } from 'mongoose';
-import { connectExternalDB } from '../database/postgresql.database.js';
 
-const isQueryTemplatePopulated = (
-  qt: Types.ObjectId | QueryTemplateMongoose
-): qt is QueryTemplateMongoose => {
-  return (
-    qt instanceof Types.ObjectId === false &&
-    (qt as QueryTemplateMongoose).name !== undefined
-  );
-};
+const poolMap = new Map<string, Pool>();
 
-const isDatabaseConnectionPopulated = (
-  db: Types.ObjectId | DatabaseConnectionMongoose
-): db is DatabaseConnectionMongoose => {
-  return (
-    db instanceof Types.ObjectId === false &&
-    (db as DatabaseConnectionMongoose).connectionString !== undefined
-  );
-};
+function getOrCreateConnectionPool(
+  connection: DatabaseConnectionMongoose
+): Pool {
+  const connectionString = connection.connectionString;
+  if (!poolMap.has(connectionString)) {
+    const newPool = new Pool({ connectionString });
+    poolMap.set(connectionString, newPool);
+    console.log(`Pool de conexión creado para: ${connection.name}`);
+  }
+  return poolMap.get(connectionString)!;
+}
 
-export const executeScheduledQuery = async (
+export async function executeScheduledQuery(
   scheduledQuery: ScheduledQueryMongoose
-): Promise<any[]> => {
-  let client: any | null = null;
-  let queryResult: any[] = [];
-  let status: 'success' | 'failed' = 'failed';
-  let errorMessage: string | undefined;
+): Promise<any> {
+  const queryTemplate = scheduledQuery.queryTemplateId as QueryTemplateMongoose;
 
-  const scheduledQueryId: Types.ObjectId = scheduledQuery._id as Types.ObjectId;
-  const { parametersValues } = scheduledQuery;
-
-  if (
-    !scheduledQuery.queryTemplateId ||
-    !isQueryTemplatePopulated(scheduledQuery.queryTemplateId)
-  ) {
-    errorMessage =
-      'La plantilla de consulta no fue populada correctamente o el ID es inválido.';
-    console.error(errorMessage, scheduledQueryId.toString());
-    await QueryResultHistoryService.createOne({
-      scheduledQueryId: scheduledQueryId,
-      executionTime: new Date(),
-      status: 'failed',
-      result: {},
-      errorMessage: errorMessage,
-      executedQuerySql: 'N/A: Query template not populated',
-    });
-    throw new Error(errorMessage);
+  if (!queryTemplate || !queryTemplate.databaseConnectionId) {
+    throw new ApiError(
+      `Configuración de conexión a base de datos inválida para plantilla "${queryTemplate?.name || 'desconocida'}". No populada o inválida.`,
+      400
+    );
   }
 
-  const queryTemplate: QueryTemplateMongoose = scheduledQuery.queryTemplateId;
+  const dbConnection =
+    queryTemplate.databaseConnectionId as DatabaseConnectionMongoose;
 
-  if (
-    !queryTemplate.databaseConnectionId ||
-    !isDatabaseConnectionPopulated(queryTemplate.databaseConnectionId)
-  ) {
-    errorMessage = `Configuración de conexión a base de datos inválida para plantilla "${queryTemplate.name}". No populada o inválida.`;
-    console.error(errorMessage, queryTemplate.databaseConnectionId);
-    await QueryResultHistoryService.createOne({
-      scheduledQueryId: scheduledQueryId,
-      executionTime: new Date(),
-      status: 'failed',
-      result: {},
-      errorMessage: errorMessage,
-      executedQuerySql: queryTemplate.querySql,
-    });
-    throw new Error(errorMessage);
-  }
+  const pool = getOrCreateConnectionPool(dbConnection);
 
-  const dbConnection: DatabaseConnectionMongoose =
-    queryTemplate.databaseConnectionId;
-
+  let client;
   try {
-    client = await connectExternalDB(
-      dbConnection.type,
-      dbConnection.connectionString
+    client = await pool.connect();
+
+    let sql = queryTemplate.querySql;
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    const regex = /\$\{(\w+)\}/g;
+    const providedParamsMap = new Map(
+      scheduledQuery.parametersValues.map((p) => [p.name, p.value])
     );
 
-    const sqlParams = parametersValues.map((p) => p.value);
-
-    if (dbConnection.type === 'postgresql') {
-      const pgClient = client;
-      const result = await pgClient.query(queryTemplate.querySql, sqlParams);
-      queryResult = result.rows;
-    } else {
-      throw new Error(
-        `Tipo de base de datos no soportado para ejecución: ${dbConnection.type}`
-      );
-    }
-
-    status = 'success';
-    return queryResult;
-  } catch (error: any) {
-    status = 'failed';
-    errorMessage = `Error al ejecutar consulta SQL para "${queryTemplate.name}": ${error.message}`;
-    console.error(errorMessage, error.stack);
-    if (error instanceof ApiError) {
-      throw error;
-    } else {
-      throw new Error(errorMessage);
-    }
-  } finally {
-    if (client && typeof client.end === 'function') {
-      await client
-        .end()
-        .catch((e: any) =>
-          console.error('Error al cerrar conexión de DB externa:', e)
+    sql = sql.replace(regex, (match, paramName) => {
+      if (providedParamsMap.has(paramName)) {
+        values.push(providedParamsMap.get(paramName));
+        return `$${paramIndex++}`;
+      } else {
+        console.warn(
+          `Parámetro '${paramName}' en la consulta SQL no tiene un valor proporcionado en la consulta programada. Usando null.`
         );
-    }
-    await QueryResultHistoryService.createOne({
-      scheduledQueryId: scheduledQueryId,
-      executionTime: new Date(),
-      status: status,
-      result: queryResult,
-      errorMessage: errorMessage,
-      executedQuerySql: queryTemplate.querySql,
+        values.push(null);
+        return `$${paramIndex++}`;
+      }
     });
+
+    console.log(`Ejecutando SQL: ${sql}`);
+    console.log(`Con valores: ${JSON.stringify(values)}`);
+
+    const result: QueryResult = await client.query(sql, values);
+    return result.rows;
+  } catch (error: any) {
+    console.error(
+      `Error al ejecutar consulta SQL para "${queryTemplate.name}":`,
+      error.message
+    );
+    throw new ApiError(
+      `Error al ejecutar consulta SQL para "${queryTemplate.name}": ${error.message}`,
+      500
+    );
+  } finally {
+    if (client) {
+      client.release();
+    }
   }
-};
+}

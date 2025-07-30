@@ -1,7 +1,7 @@
 import { QueryTemplateModel } from '../schemas/queryTemplate.schema.js';
 import type { QueryTemplate, QueryTemplateMongoose } from '../types/types.js';
 import ApiError from '../errors/error.js';
-import { Types } from 'mongoose';
+import { Types, isObjectIdOrHexString } from 'mongoose';
 import DatabaseConnectionService from './databaseConnection.model.js';
 
 class QueryTemplateService {
@@ -45,7 +45,7 @@ class QueryTemplateService {
 
   async createOne(data: QueryTemplate): Promise<QueryTemplateMongoose> {
     try {
-      if (!Types.ObjectId.isValid(data.databaseConnectionId)) {
+      if (!isObjectIdOrHexString(data.databaseConnectionId)) {
         throw new ApiError(
           `ID de conexión de base de datos inválido: ${data.databaseConnectionId}`,
           400
@@ -90,7 +90,7 @@ class QueryTemplateService {
       }
 
       if (data.databaseConnectionId) {
-        if (!Types.ObjectId.isValid(data.databaseConnectionId)) {
+        if (!isObjectIdOrHexString(data.databaseConnectionId)) {
           throw new ApiError(
             `ID de conexión de base de datos inválido: ${data.databaseConnectionId}`,
             400

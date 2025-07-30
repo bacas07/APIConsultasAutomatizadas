@@ -22,7 +22,7 @@ export interface QueryTemplate {
       type: string;
     },
   ];
-  databaseConnectionId: Types.ObjectId;
+  databaseConnectionId: Types.ObjectId | DatabaseConnection;
 }
 
 export interface QueryTemplateMongoose extends QueryTemplate, Document {
@@ -31,7 +31,7 @@ export interface QueryTemplateMongoose extends QueryTemplate, Document {
 }
 
 export interface ScheduledQuery {
-  queryTemplateId: Types.ObjectId;
+  queryTemplateId: Types.ObjectId | QueryTemplateMongoose;
   nextExecutionTime: Date;
   cronExpression: string;
   isActive: boolean;

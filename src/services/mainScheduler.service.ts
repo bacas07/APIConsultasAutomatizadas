@@ -27,7 +27,14 @@ class MainScheduler {
     try {
       this.stopAllScheduledTasks();
       const activeQueries = await ScheduledQueryModel.find({ isActive: true })
-        .populate('queryTemplateId')
+        .populate({
+          path: 'queryTemplateId',
+          model: 'QueryTemplate',
+          populate: {
+            path: 'databaseConnectionId',
+            model: 'DatabaseConnection',
+          },
+        })
         .exec();
 
       if (activeQueries.length === 0) {

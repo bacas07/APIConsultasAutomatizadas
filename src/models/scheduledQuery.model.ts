@@ -1,8 +1,8 @@
 import { ScheduledQueryModel } from '../schemas/scheduledQuery.schema.js';
 import type { ScheduledQuery, ScheduledQueryMongoose } from '../types/types.js';
 import ApiError from '../errors/error.js';
-import { Types } from 'mongoose';
-import QueryTemplateService from './queryTemplate.model.js'; // Necesario para validar queryTemplateId
+import { Types, isObjectIdOrHexString } from 'mongoose';
+import QueryTemplateService from './queryTemplate.model.js';
 
 class ScheduledQueryService {
   private readonly model = ScheduledQueryModel;
@@ -63,8 +63,6 @@ class ScheduledQueryService {
 
   async createOne(scheduledQueryData: any): Promise<any> {
     try {
-      // Opcional pero recomendado: Verificar si la queryTemplateId existe
-      // Esto convertiría el error 500 en un 404 más específico si ese es el caso.
       const existingTemplate = await QueryTemplateService.getById(
         scheduledQueryData.queryTemplateId
       );
@@ -75,25 +73,16 @@ class ScheduledQueryService {
         );
       }
 
-      // Si no existe, podrías agregar un console.log aquí para ver scheduledQueryData
-      // console.log('Datos de scheduledQueryData antes de crear:', scheduledQueryData);
-
       const newScheduledQuery = new ScheduledQueryModel(scheduledQueryData);
-      const savedQuery = await newScheduledQuery.save(); // La línea 67 podría estar aquí o en el constructor si es un error de tipo
-
-      // Si la línea 67 se refiere a la creación del objeto o a .save(),
-      // el error original se capturará abajo.
-
+      const savedQuery = await newScheduledQuery.save();
       return savedQuery;
     } catch (error: any) {
-      // ¡Aquí es donde vemos el error original!
       console.error(
         'ERROR DETECTADO EN ScheduledQueryService.createOne:',
         error
       );
 
       if (error.name === 'ValidationError') {
-        // Errores de validación de Mongoose
         const messages = Object.values(error.errors).map(
           (val: any) => val.message
         );
@@ -101,10 +90,9 @@ class ScheduledQueryService {
       }
 
       if (error instanceof ApiError) {
-        throw error; // Propagar errores ApiError ya definidos (como el 404 de arriba)
+        throw error;
       }
 
-      // Error genérico, lo envolvemos en un ApiError
       throw new ApiError(
         'Error interno al crear la consulta programada.',
         500,
@@ -123,7 +111,7 @@ class ScheduledQueryService {
       }
 
       if (data.queryTemplateId) {
-        if (!Types.ObjectId.isValid(data.queryTemplateId)) {
+        if (!isObjectIdOrHexString(data.queryTemplateId)) {
           throw new ApiError(
             `ID de plantilla de consulta inválido: ${data.queryTemplateId}`,
             400
