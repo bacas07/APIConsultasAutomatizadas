@@ -1,4 +1,3 @@
-// src/schemas/ScheduledQuerySchema.ts
 import { Schema, model, Types } from 'mongoose';
 import type { ScheduledQueryMongoose } from '../types/types.js';
 
