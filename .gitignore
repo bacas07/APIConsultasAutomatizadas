@@ -15,6 +15,6 @@ dist/
 Thumbs.db
 .vscode/
 
-# Env variables (si los usas en backend)
+# Env variables
 .env
 .env.*.local
