@@ -33,3 +33,19 @@ export interface ScheduledQueryMongoose extends ScheduledQuery, Document {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface QueryResultHistory {
+  scheduledQueryId: Types.ObjectId;
+  executionTime: Date;
+  status: 'success' | 'failed';
+  result: any;
+  errorMessage?: string;
+  executedQuerySql: string;
+}
+
+export interface QueryResultHistoryMongoose
+  extends QueryResultHistory,
+    Document {
+  createdAt: Date;
+  updatedAt: Date;
+}
