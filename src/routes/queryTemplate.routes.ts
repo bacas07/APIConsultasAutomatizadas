@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import QueryTemplateController from '../controllers/querytemplate.controller.js';
+import QueryTemplateController from '../controllers/queryTemplate.controller.js';
 
 const QueryTemplateRouter = Router();
 
