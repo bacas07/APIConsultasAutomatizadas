@@ -34,6 +34,7 @@ export interface ScheduledQuery {
   queryTemplateId: Types.ObjectId;
   schedule: string;
   nextExecutionTime: Date;
+  cronExpression: string;
   isActive: boolean;
   parametersValues: [
     {
@@ -41,6 +42,7 @@ export interface ScheduledQuery {
       value: any;
     },
   ];
+  lastExecutionTime?: Date;
 }
 
 export interface ScheduledQueryMongoose extends ScheduledQuery, Document {
