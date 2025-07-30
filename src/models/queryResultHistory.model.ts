@@ -6,7 +6,6 @@ import type {
   QueryResultHistoryMongoose,
 } from '../types/types.js';
 import ApiError from '../errors/error.js';
-import { Types } from 'mongoose';
 
 class ScheduledQueryLogicService {
   private scheduledQueryModel = ScheduledQueryModel;
