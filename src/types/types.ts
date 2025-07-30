@@ -1,5 +1,17 @@
 import { Document, Types } from 'mongoose';
 
+export interface DatabaseConnection {
+  name: string;
+  type: 'postgresql' | 'mysql' | 'mssql' | 'oracle' | 'other';
+}
+
+export interface DatabaseConnectionMongoose
+  extends DatabaseConnection,
+    Document {
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface QueryTemplate {
   name: string;
   querySql: string;
@@ -9,6 +21,7 @@ export interface QueryTemplate {
       type: string;
     },
   ];
+  databaseConnectionId: Types.ObjectId;
 }
 
 export interface QueryTemplateMongoose extends QueryTemplate, Document {
