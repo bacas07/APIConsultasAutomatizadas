@@ -60,10 +60,12 @@ class MainScheduler {
     }
 
     try {
-      timeSchedulerUtil.getNextExecutionTime(scheduledQuery.cronExpression);
+      timeSchedulerUtil.getNextExecutionTime(
+        scheduledQuery.cronExpression.toISOString()
+      );
 
       const task = cron.schedule(
-        scheduledQuery.cronExpression,
+        scheduledQuery.cronExpression.toISOString(),
         async () => {
           console.log(
             `Ejecutando tarea para consulta programada ID: ${scheduledQuery._id.toString()}`
@@ -76,11 +78,10 @@ class MainScheduler {
             );
 
             const now = new Date();
-            // Usamos el modelo directamente para actualizar
             await ScheduledQueryModel.findByIdAndUpdate(scheduledQuery._id, {
               lastExecutionTime: now,
               nextExecutionTime: timeSchedulerUtil.getNextExecutionTime(
-                scheduledQuery.cronExpression,
+                scheduledQuery.cronExpression.toISOString(),
                 now
               ),
             });
@@ -96,7 +97,7 @@ class MainScheduler {
         }
       );
 
-      this.scheduledTasks.set(scheduledQuery._id.toString(), task); // .toString() para asegurar la clave
+      this.scheduledTasks.set(scheduledQuery._id.toString(), task);
       console.log(
         `Consulta ID: ${scheduledQuery._id.toString()} programada para '${scheduledQuery.cronExpression}'`
       );

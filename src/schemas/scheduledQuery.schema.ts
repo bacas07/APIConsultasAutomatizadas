@@ -17,6 +17,12 @@ const ScheduledQuerySchema = new Schema<ScheduledQueryMongoose>(
         value: { type: Schema.Types.Mixed, required: true },
       },
     ],
+    lastExecutionTime: {
+      type: Date,
+    },
+    cronExpression: {
+      type: Date,
+    },
   },
   {
     timestamps: true,

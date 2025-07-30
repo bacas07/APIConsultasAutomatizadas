@@ -34,7 +34,7 @@ export interface ScheduledQuery {
   queryTemplateId: Types.ObjectId;
   schedule: string;
   nextExecutionTime: Date;
-  cronExpression: string;
+  cronExpression: Date;
   isActive: boolean;
   parametersValues: [
     {
