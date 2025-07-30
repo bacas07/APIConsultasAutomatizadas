@@ -1,73 +1,22 @@
-import { ScheduledQueryModel } from '../schemas/scheduledQuery.schema.js';
-import QueryTemplateModel from '../models/queryTemplate.model.js';
-import type {
-  ScheduledQuery,
-  ScheduledQueryMongoose,
-  QueryResultHistoryMongoose,
-} from '../types/types.js';
-import ApiError from '../errors/error.js';
+import { QueryResultHistoryModel } from '../schemas/queryResultHistory.schema.js';
+import type { QueryResultHistoryMongoose } from '../types/types.js';
 
-class ScheduledQueryLogicService {
-  private scheduledQueryModel = ScheduledQueryModel;
-  private queryTemplateModel = QueryTemplateModel;
+class QueryResultHistoryLogicService {
+  private queryResultHistoryModel = QueryResultHistoryModel;
 
-  async createScheduledQuery(
-    data: ScheduledQuery
-  ): Promise<ScheduledQueryMongoose> {
-    const templateExists = await this.queryTemplateModel.getById(
-      data.queryTemplateId.toString()
-    );
-    if (!templateExists) {
-      throw new ApiError(
-        `La plantilla de consulta con ID ${data.queryTemplateId} no existe.`,
-        404
-      );
-    }
-    return this.scheduledQueryModel.create(data);
+  async getAllResults(): Promise<QueryResultHistoryMongoose[]> {
+    return this.queryResultHistoryModel.find();
   }
 
-  async getScheduledQueryById(
+  async getResultById(id: string): Promise<QueryResultHistoryMongoose | null> {
+    return this.queryResultHistoryModel.findById(id);
+  }
+
+  async getResultsByScheduledQueryId(
     id: string
-  ): Promise<ScheduledQueryMongoose | null> {
-    return this.scheduledQueryModel.findById(id);
+  ): Promise<QueryResultHistoryMongoose[]> {
+    return this.queryResultHistoryModel.find({ scheduledQueryId: id });
   }
-
-  async getAllScheduledQueries(): Promise<ScheduledQueryMongoose[]> {
-    return this.scheduledQueryModel.find();
-  }
-
-  async updateScheduledQuery(
-    id: string,
-    data: Partial<ScheduledQuery>
-  ): Promise<ScheduledQueryMongoose | null> {
-    if (data.queryTemplateId) {
-      const templateExists = await this.queryTemplateModel.getById(
-        data.queryTemplateId.toString()
-      );
-      if (!templateExists) {
-        throw new ApiError(
-          `La plantilla de consulta con ID ${data.queryTemplateId} no existe.`,
-          404
-        );
-      }
-    }
-    return this.scheduledQueryModel.findByIdAndUpdate(id, data);
-  }
-
-  async deleteScheduledQuery(
-    id: string
-  ): Promise<ScheduledQueryMongoose | null> {
-    return this.scheduledQueryModel.findByIdAndDelete(id);
-  }
-
-  /*
-  async runScheduledQueryNow(id: string): Promise<QueryResultHistoryMongoose> {
-    const { executeSingleScheduledQuery } = await import(
-      './scheduler.service.js'
-    );
-    return executeSingleScheduledQuery(id);
-  }
-*/
 }
 
-export default new ScheduledQueryLogicService();
+export default new QueryResultHistoryLogicService();
