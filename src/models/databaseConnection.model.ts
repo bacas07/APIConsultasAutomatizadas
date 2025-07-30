@@ -5,7 +5,7 @@ import ApiError from '../errors/error.js';
 import { Types } from 'mongoose';
 
 class DatabaseConnectionService {
-    private model = DatabaseConnectionModel;
+    private readonly model = DatabaseConnectionModel;
 
     async getAll(): Promise<DatabaseConnectionMongoose[]> {
         try {

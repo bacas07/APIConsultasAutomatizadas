@@ -5,7 +5,7 @@ import { Types } from 'mongoose';
 import DatabaseConnectionService from './databaseConnection.model.js';
 
 class QueryTemplateService {
-  private model = QueryTemplateModel;
+  private readonly model = QueryTemplateModel;
 
   async getAll(): Promise<QueryTemplateMongoose[]> {
     try {
