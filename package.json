@@ -20,7 +20,9 @@
     "@types/mongoose": "^5.11.96",
     "@types/morgan": "^1.9.9",
     "@types/node": "^24.0.13",
+    "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.17",
+    "@types/pg": "^8.15.5",
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
@@ -29,12 +31,16 @@
     "@google/genai": "^1.8.0",
     "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.5",
+    "cron-parser": "^5.3.0",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "mongoose": "^8.13.2",
     "morgan": "^1.10.0",
+    "mysql2": "^3.14.3",
+    "node-cron": "^4.2.1",
     "nodemailer": "^7.0.5",
+    "pg": "^8.16.3",
     "valibot": "^1.1.0"
   }
 }
