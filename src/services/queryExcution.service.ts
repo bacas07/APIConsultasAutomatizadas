@@ -1,4 +1,3 @@
-/*import { Client } from 'pg';
 import {
   QueryTemplateMongoose,
   ScheduledQueryMongoose,
@@ -8,19 +7,19 @@ import {
 import QueryResultHistoryService from '../models/queryResultHistory.model.js';
 import ApiError from '../errors/error.js';
 import { Types } from 'mongoose';
+import { connectExternalDB } from '../database/postgresql.database.js';
 
 class QueryExecutionService {
   public async executeScheduledQuery(
     scheduledQuery: ScheduledQueryMongoose
   ): Promise<any[]> {
-    let client: Client | null = null;
+    let client: any | null = null;
     let queryResult: any[] = [];
     let status: 'success' | 'failed' = 'failed';
     let errorMessage: string | undefined;
 
     const scheduledQueryId: Types.ObjectId =
       scheduledQuery._id as Types.ObjectId;
-
     const { parametersValues } = scheduledQuery;
 
     const isQueryTemplatePopulated = (
@@ -65,7 +64,7 @@ class QueryExecutionService {
       !queryTemplate.databaseConnectionId ||
       !isDatabaseConnectionPopulated(queryTemplate.databaseConnectionId)
     ) {
-      errorMessage = `Configuración de conexión a base de datos inválida para plantilla ${queryTemplate.name}. No populada o inválida.`;
+      errorMessage = `Configuración de conexión a base de datos inválida para plantilla "${queryTemplate.name}". No populada o inválida.`;
       console.error(errorMessage, queryTemplate.databaseConnectionId);
       await QueryResultHistoryService.createOne({
         scheduledQueryId: scheduledQueryId,
@@ -82,15 +81,22 @@ class QueryExecutionService {
       queryTemplate.databaseConnectionId;
 
     try {
-      client = await this.connectToExternalDatabase(
+      client = await connectExternalDB(
         dbConnection.type,
         dbConnection.connectionString
       );
 
       const sqlParams = parametersValues.map((p) => p.value);
 
-      const result = await client.query(queryTemplate.querySql, sqlParams);
-      queryResult = result.rows;
+      if (dbConnection.type === 'postgresql') {
+        const pgClient = client;
+        const result = await pgClient.query(queryTemplate.querySql, sqlParams);
+        queryResult = result.rows;
+      } else {
+        throw new Error(
+          `Tipo de base de datos no soportado para ejecución: ${dbConnection.type}`
+        );
+      }
 
       status = 'success';
       return queryResult;
@@ -98,12 +104,18 @@ class QueryExecutionService {
       status = 'failed';
       errorMessage = `Error al ejecutar consulta SQL para "${queryTemplate.name}": ${error.message}`;
       console.error(errorMessage, error.stack);
-      throw new Error(errorMessage);
+      if (error instanceof ApiError) {
+        throw error;
+      } else {
+        throw new Error(errorMessage);
+      }
     } finally {
-      if (client) {
+      if (client && typeof client.end === 'function') {
         await client
           .end()
-          .catch((e: any) => console.error('Error al cerrar conexión PG:', e));
+          .catch((e: any) =>
+            console.error('Error al cerrar conexión de DB externa:', e)
+          );
       }
       await QueryResultHistoryService.createOne({
         scheduledQueryId: scheduledQueryId,
@@ -118,4 +130,3 @@ class QueryExecutionService {
 }
 
 export default new QueryExecutionService();
-*/
