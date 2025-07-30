@@ -29,3 +29,7 @@ export interface ScheduledQuery {
   ];
 }
 
+export interface ScheduledQueryMongoose extends ScheduledQuery, Document {
+  createdAt: Date;
+  updatedAt: Date;
+}
