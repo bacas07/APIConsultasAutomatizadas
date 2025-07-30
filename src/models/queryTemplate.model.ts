@@ -2,7 +2,7 @@ import { QueryTemplateModel } from '../schemas/queryTemplate.schema.js';
 import type { QueryTemplate, QueryTemplateMongoose } from '../types/types.js';
 import ApiError from '../errors/error.js';
 import { Types } from 'mongoose';
-import DatabaseConnectionService from '../models/databaConnection.model.js';
+import DatabaseConnectionService from './databaseConnection.model.js';
 
 class QueryTemplateService {
   private model = QueryTemplateModel;
