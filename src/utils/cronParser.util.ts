@@ -1,4 +1,5 @@
-import parser from 'cron-parser';
+import cronParser from 'cron-parser';
+const { parseExpression } = cronParser;
 
 class TimeSchedulerUtil {
   public getNextExecutionTime(
@@ -8,17 +9,23 @@ class TimeSchedulerUtil {
     try {
       const options = {
         currentDate: lastExecutionTime || new Date(),
-        iterator: false,
+        iterator: true,
         tz: 'America/Bogota',
       };
 
-      const interval = parser.parse(cronExpression, options);
+      const interval = parseExpression(cronExpression, options);
+      const result = interval.next();
 
-      const next = interval.next();
-      return next.toDate();
+      if ('value' in result && result.value) {
+        return result.value.toDate();
+      }
+
+      throw new Error(
+        'No se encontró una próxima fecha válida en la expresión cron'
+      );
     } catch (error: any) {
       console.error(
-        `Error al parsear la expresión cron "${cronExpression}":`,
+        `Error al parsear cron "${cronExpression}":`,
         error.message
       );
       throw new Error(

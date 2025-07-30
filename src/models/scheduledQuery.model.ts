@@ -61,36 +61,55 @@ class ScheduledQueryService {
     }
   }
 
-  async createOne(data: ScheduledQuery): Promise<ScheduledQueryMongoose> {
+  async createOne(scheduledQueryData: any): Promise<any> {
     try {
-      if (!Types.ObjectId.isValid(data.queryTemplateId)) {
-        throw new ApiError(
-          `ID de plantilla de consulta inválido: ${data.queryTemplateId}`,
-          400
-        );
-      }
-      const queryTemplate = await QueryTemplateService.getById(
-        data.queryTemplateId.toString()
+      // Opcional pero recomendado: Verificar si la queryTemplateId existe
+      // Esto convertiría el error 500 en un 404 más específico si ese es el caso.
+      const existingTemplate = await QueryTemplateService.getById(
+        scheduledQueryData.queryTemplateId
       );
-      if (!queryTemplate) {
+      if (!existingTemplate) {
         throw new ApiError(
-          `La plantilla de consulta con ID ${data.queryTemplateId} no existe.`,
+          'La plantilla de consulta (queryTemplateId) especificada no existe.',
           404
         );
       }
 
-      const scheduledQuery = await this.model.create(data);
-      return await scheduledQuery.populate('queryTemplateId');
+      // Si no existe, podrías agregar un console.log aquí para ver scheduledQueryData
+      // console.log('Datos de scheduledQueryData antes de crear:', scheduledQueryData);
+
+      const newScheduledQuery = new ScheduledQueryModel(scheduledQueryData);
+      const savedQuery = await newScheduledQuery.save(); // La línea 67 podría estar aquí o en el constructor si es un error de tipo
+
+      // Si la línea 67 se refiere a la creación del objeto o a .save(),
+      // el error original se capturará abajo.
+
+      return savedQuery;
     } catch (error: any) {
-      if (error.code === 11000) {
-        throw new ApiError(
-          'Ya existe una consulta programada con esta configuración.',
-          409
+      // ¡Aquí es donde vemos el error original!
+      console.error(
+        'ERROR DETECTADO EN ScheduledQueryService.createOne:',
+        error
+      );
+
+      if (error.name === 'ValidationError') {
+        // Errores de validación de Mongoose
+        const messages = Object.values(error.errors).map(
+          (val: any) => val.message
         );
+        throw new ApiError(`Error de validación: ${messages.join('. ')}`, 400);
       }
 
-      if (error instanceof ApiError) throw error;
-      throw new ApiError('Error interno al crear la consulta programada.', 500);
+      if (error instanceof ApiError) {
+        throw error; // Propagar errores ApiError ya definidos (como el 404 de arriba)
+      }
+
+      // Error genérico, lo envolvemos en un ApiError
+      throw new ApiError(
+        'Error interno al crear la consulta programada.',
+        500,
+        error.message || error
+      );
     }
   }
 

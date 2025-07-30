@@ -32,9 +32,8 @@ export interface QueryTemplateMongoose extends QueryTemplate, Document {
 
 export interface ScheduledQuery {
   queryTemplateId: Types.ObjectId;
-  schedule: string;
   nextExecutionTime: Date;
-  cronExpression: Date;
+  cronExpression: string;
   isActive: boolean;
   parametersValues: [
     {

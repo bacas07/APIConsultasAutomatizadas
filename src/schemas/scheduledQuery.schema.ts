@@ -8,8 +8,7 @@ const ScheduledQuerySchema = new Schema<ScheduledQueryMongoose>(
       ref: 'QueryTemplate',
       required: true,
     },
-    schedule: { type: String, required: true },
-    nextExecutionTime: { type: Date, required: true },
+    nextExecutionTime: { type: Date },
     isActive: { type: Boolean, default: true },
     parametersValues: [
       {
@@ -21,7 +20,7 @@ const ScheduledQuerySchema = new Schema<ScheduledQueryMongoose>(
       type: Date,
     },
     cronExpression: {
-      type: Date,
+      type: String,
     },
   },
   {
