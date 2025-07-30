@@ -46,6 +46,7 @@ export interface ScheduledQuery {
 }
 
 export interface ScheduledQueryMongoose extends ScheduledQuery, Document {
+  _id: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
