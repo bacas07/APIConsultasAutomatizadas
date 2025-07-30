@@ -3,6 +3,7 @@ import { Document, Types } from 'mongoose';
 export interface DatabaseConnection {
   name: string;
   type: 'postgresql' | 'mysql' | 'mssql' | 'oracle' | 'other';
+  connectionString: string;
 }
 
 export interface DatabaseConnectionMongoose
