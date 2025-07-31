@@ -22,7 +22,7 @@ class AuthService {
     try {
       const newUser = await UserService.createUser(userData);
       const token = this.generateToken(newUser._id!.toString(), newUser.role);
-      return { user: newUser.toObject(), token };
+      return { user: newUser, token };
     } catch (error: any) {
       if (error instanceof ApiError) throw error;
       throw new ApiError(`Error en el registro: ${error.message}`, 500);
