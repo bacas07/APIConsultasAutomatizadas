@@ -1,7 +1,7 @@
 import * as cron from 'node-cron';
 import { ScheduledQueryModel } from '../schemas/scheduledQuery.schema.js';
 import timeSchedulerUtil from '../utils/cronParser.util.js';
-import { executeScheduledQuery } from '../services/queryExecution.service.js';
+import ReportOrchestatorService from './reportOrchestator.service.js';
 import { ScheduledQueryMongoose } from '../types/types.js';
 
 class MainScheduler {
@@ -26,6 +26,7 @@ class MainScheduler {
   private async loadAndScheduleAllQueries(): Promise<void> {
     try {
       this.stopAllScheduledTasks();
+
       const activeQueries = await ScheduledQueryModel.find({ isActive: true })
         .populate({
           path: 'queryTemplateId',
@@ -75,25 +76,34 @@ class MainScheduler {
           console.log(
             `Ejecutando tarea para consulta programada ID: ${scheduledQuery._id.toString()}`
           );
+          let executionSuccess = false;
           try {
-            const results = await executeScheduledQuery(scheduledQuery);
+            const reportRecord =
+              await ReportOrchestatorService.generateAndSendScheduledReport(
+                scheduledQuery
+              );
             console.log(
-              `Consulta ID ${scheduledQuery._id.toString()} ejecutada exitosamente. Resultados:`,
-              results
+              `Consulta ID ${scheduledQuery._id.toString()} ejecutada exitosamente. Reporte ID: ${reportRecord._id}`
             );
-
-            const now = new Date();
-            await ScheduledQueryModel.findByIdAndUpdate(scheduledQuery._id, {
-              lastExecutionTime: now,
-              nextExecutionTime: timeSchedulerUtil.getNextExecutionTime(
-                scheduledQuery.cronExpression,
-                now
-              ),
-            });
+            executionSuccess = true;
           } catch (executionError: any) {
             console.error(
               `Error al ejecutar consulta programada ID: ${scheduledQuery._id.toString()}:`,
               executionError.message
+            );
+            executionSuccess = false;
+          } finally {
+            const now = new Date();
+            const nextExecution = timeSchedulerUtil.getNextExecutionTime(
+              scheduledQuery.cronExpression,
+              now
+            );
+            await ScheduledQueryModel.findByIdAndUpdate(scheduledQuery._id, {
+              lastExecutionTime: now,
+              nextExecutionTime: nextExecution,
+            });
+            console.log(
+              `Tiempos de ejecución actualizados para consulta ID: ${scheduledQuery._id.toString()}`
             );
           }
         },
