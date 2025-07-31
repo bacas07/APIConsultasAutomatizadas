@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, HydratedDocument } from 'mongoose';
 import { IUser, IUserMongoose, UserRole } from '../types/types.js';
 import bcrypt from 'bcryptjs';
 

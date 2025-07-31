@@ -1,7 +1,5 @@
-// src/models/user.model.ts
-
-import mongoose, { Schema, Document } from 'mongoose'; // Asegúrate de que Document también esté aquí
 import UserModel from '../schemas/user.schema.js';
+import mongoose, { Query } from 'mongoose';
 import { IUserMongoose, IUser, UserRole } from '../types/types.js';
 import ApiError from '../errors/error.js';
 
@@ -20,6 +18,23 @@ class UserService {
         throw new ApiError('El nombre de usuario ya existe.', 409);
       }
       throw new ApiError(`Error al crear el usuario: ${error.message}`, 500);
+    }
+  }
+
+  public async findUserByUsername(
+    username: string,
+    includePassword: boolean = false
+  ): Promise<IUserMongoose | null> {
+    try {
+      const query = UserModel.findOne({ username });
+      if (includePassword) query.select('+password');
+
+      return (await query.exec()) as IUserMongoose | null;
+    } catch (error: any) {
+      throw new ApiError(
+        `Error al buscar usuario por nombre: ${error.message}`,
+        500
+      );
     }
   }
 
