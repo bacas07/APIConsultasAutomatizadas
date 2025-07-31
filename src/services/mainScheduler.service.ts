@@ -1,5 +1,5 @@
 import * as cron from 'node-cron';
-import { ScheduledQueryModel } from '../schemas/scheduledQuery.schema.js';
+import ScheduledQueryModel from '../schemas/scheduledQuery.schema.js';
 import timeSchedulerUtil from '../utils/cronParser.util.js';
 import ReportOrchestatorService from './reportOrchestator.service.js';
 import { ScheduledQueryMongoose } from '../types/types.js';
