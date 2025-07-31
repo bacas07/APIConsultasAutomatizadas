@@ -78,3 +78,18 @@ export interface IUserMongoose extends IUser, Document {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export interface IReportHistory {
+  scheduledQueryId?: Types.ObjectId;
+  queryTemplateId?: Types.ObjectId;
+  generatedAt: Date;
+  status: 'success' | 'failed';
+  fileName: string;
+  fileSizeKB?: number;
+  recipients: string[];
+  emailStatus: 'sent' | 'failed' | 'not_applicable';
+  errorMessage?: string;
+  associatedQueryResultId?: Types.ObjectId;
+}
+
+export interface ReportHistoryMongoose extends IReportHistory, Document {}
