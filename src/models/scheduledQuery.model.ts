@@ -1,4 +1,4 @@
-import { ScheduledQueryModel } from '../schemas/scheduledQuery.schema.js';
+import ScheduledQueryModel from '../schemas/scheduledQuery.schema.js';
 import type { ScheduledQuery, ScheduledQueryMongoose } from '../types/types.js';
 import ApiError from '../errors/error.js';
 import { Types, isObjectIdOrHexString } from 'mongoose';

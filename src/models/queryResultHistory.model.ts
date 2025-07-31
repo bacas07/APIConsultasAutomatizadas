@@ -1,12 +1,12 @@
 import { QueryResultHistoryModel } from '../schemas/queryResultHistory.schema.js';
 import type {
-  QueryResultHistory,
+  IQueryResultHistory,
   QueryResultHistoryMongoose,
 } from '../types/types.js';
 import ApiError from '../errors/error.js';
 import { Types } from 'mongoose';
 
-class QueryResultHistoryService {
+class IQueryResultHistoryService {
   private model = QueryResultHistoryModel;
 
   async getAll(): Promise<QueryResultHistoryMongoose[]> {
@@ -80,7 +80,7 @@ class QueryResultHistoryService {
   }
 
   async createOne(
-    data: QueryResultHistory
+    data: IQueryResultHistory
   ): Promise<QueryResultHistoryMongoose> {
     try {
       if (!Types.ObjectId.isValid(data.scheduledQueryId)) {
@@ -107,4 +107,4 @@ class QueryResultHistoryService {
   }
 }
 
-export default new QueryResultHistoryService();
+export default new IQueryResultHistoryService();
