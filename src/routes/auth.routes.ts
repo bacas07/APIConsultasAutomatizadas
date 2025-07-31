@@ -10,11 +10,8 @@ AuthRouter.post(
   }
 );
 
-AuthRouter.post(
-  '/login',
-  (req: Request, res: Response, next: NextFunction) => {
-    AuthController.login(req, res, next);
-  }
-);
+AuthRouter.post('/login', (req: Request, res: Response, next: NextFunction) => {
+  AuthController.login(req, res, next);
+});
 
 export default AuthRouter;
