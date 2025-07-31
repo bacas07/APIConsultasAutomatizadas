@@ -65,3 +65,16 @@ export interface QueryResultHistoryMongoose
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type UserRole = 'Admin' | 'Client' | 'User';
+
+export interface IUser {
+  username: string;
+  password?: string;
+  role: UserRole;
+}
+
+export interface IUserMongoose extends IUser, Document {
+  createdAt?: Date;
+  updatedAt?: Date;
+}
