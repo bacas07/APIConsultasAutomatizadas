@@ -1,27 +1,30 @@
+// src/services/onDemandQuery.service.ts
 import { Types } from 'mongoose';
 import ExternalDatabaseConnection from '../database/externalDatabaseConnection.js';
-import QueryTemplateService from '../models/queryTemplate.model.js';
+// import QueryTemplateService from '../models/queryTemplate.model.js'; // <<<<< Ya NO es necesario aquí
 import {
-  QueryTemplateMongoose,
+  QueryTemplateMongoose, // Sigue siendo necesario para tipar el parámetro
   DatabaseConnectionMongoose,
 } from '../types/types.js';
 import ApiError from '../errors/error.js';
 
 class OnDemandQueryService {
   public async executeQuery(
-    queryTemplateId: Types.ObjectId,
+    // CAMBIO IMPORTANTE: Ahora espera la plantilla completa
+    queryTemplate: QueryTemplateMongoose, 
     parametersValues: Array<{ name: string; value: any }>
   ): Promise<any[]> {
     const MAX_RETRIES = 3;
     let currentRetry = 0;
 
-    const queryTemplate = await (
-      QueryTemplateService as any
-    ).getQueryTemplateById(queryTemplateId.toString());
-    if (!queryTemplate) {
+    // Ya no necesitamos buscar la plantilla, ya viene en el parámetro
+    // const queryTemplate = await (
+    //   QueryTemplateService as any
+    // ).getQueryTemplateById(queryTemplateId.toString());
+    if (!queryTemplate) { // Esta validación es menos probable ahora, pero sigue siendo buena
       throw new ApiError(
-        `Plantilla de consulta con ID ${queryTemplateId.toString()} no encontrada.`,
-        404
+        `Plantilla de consulta no proporcionada para ejecución.`,
+        400
       );
     }
 
@@ -36,7 +39,8 @@ class OnDemandQueryService {
 
     while (currentRetry < MAX_RETRIES) {
       try {
-        let sql = (queryTemplate as QueryTemplateMongoose).querySql;
+        // Aseguramos el acceso a querySql directamente desde el objeto queryTemplate
+        let sql = queryTemplate.querySql; 
         const values: any[] = [];
         let paramIndex = 1;
 
@@ -49,12 +53,9 @@ class OnDemandQueryService {
           if (providedParamsMap.has(paramName)) {
             values.push(providedParamsMap.get(paramName));
           } else {
-            const templateParam = (
-              queryTemplate.parameters as Array<{
-                name: string;
-                defaultValue?: any;
-              }>
-            ).find((p) => p.name === paramName);
+            const templateParam = queryTemplate.parameters.find( // Acceso directo a parameters
+              (p) => p.name === paramName
+            );
             if (templateParam && templateParam.defaultValue !== undefined) {
               values.push(templateParam.defaultValue);
             } else {

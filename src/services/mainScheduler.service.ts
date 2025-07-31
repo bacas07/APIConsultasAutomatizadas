@@ -2,7 +2,10 @@ import * as cron from 'node-cron';
 import ScheduledQueryModel from '../schemas/scheduledQuery.schema.js';
 import timeSchedulerUtil from '../utils/cronParser.util.js';
 import ReportOrchestatorService from './reportOrchestator.service.js';
-import { ScheduledQueryMongoose } from '../types/types.js';
+import {
+  ReportHistoryMongoose,
+  ScheduledQueryMongoose,
+} from '../types/types.js';
 
 class MainScheduler {
   private scheduledTasks: Map<string, cron.ScheduledTask> = new Map();
@@ -17,16 +20,13 @@ class MainScheduler {
         console.log('Recargando consultas programadas...');
         await this.loadAndScheduleAllQueries();
       },
-      {
-        timezone: 'America/Bogota',
-      }
+      { timezone: 'America/Bogota' }
     );
   }
 
   private async loadAndScheduleAllQueries(): Promise<void> {
     try {
       this.stopAllScheduledTasks();
-
       const activeQueries = await ScheduledQueryModel.find({ isActive: true })
         .populate({
           path: 'queryTemplateId',
@@ -78,7 +78,8 @@ class MainScheduler {
           );
           let executionSuccess = false;
           try {
-            const reportRecord =
+            // @ts-ignore: Estamos seguros que reportRecord tiene _id aunque el tipo sea IReportHistory
+            const reportRecord: ReportHistoryMongoose =
               await ReportOrchestatorService.generateAndSendScheduledReport(
                 scheduledQuery
               );
@@ -107,9 +108,7 @@ class MainScheduler {
             );
           }
         },
-        {
-          timezone: 'America/Bogota',
-        }
+        { timezone: 'America/Bogota' }
       );
 
       this.scheduledTasks.set(scheduledQuery._id.toString(), task);
