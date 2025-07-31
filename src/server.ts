@@ -15,6 +15,7 @@ import QueryResultHistoryRouter from './routes/queryResultHistory.routes.js';
 
 import AuthRouter from './routes/auth.routes.js';
 import UserRouter from './routes/user.routes.js';
+import ReportHistoryRouter from './routes/reportHistory.routes.js';
 
 // Importación del manejador de errores global
 import { errorHandler } from './middlewares/custom/errorHandler.js';
@@ -36,6 +37,7 @@ server.use('/api/query-history', QueryResultHistoryRouter);
 // Nuevas Rutas agregadas
 server.use('/api/auth', AuthRouter);
 server.use('/api/users', UserRouter);
+server.use('/api/report-history', ReportHistoryRouter);
 
 // Ruta de bienvenida o salud
 server.get('/', (req: Request, res: Response) => {
