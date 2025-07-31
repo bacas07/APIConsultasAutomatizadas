@@ -1,0 +1,24 @@
+Respuestas.
+
+Optimizacion de consultas.
+
+- Explica como optimizarias una consulta SQL que esta tardando demadiado en ejecutarse.
+Como todo buen doctor lo primero seria ver cual de todas las consultas que se realizan es la que esta dando problemas. Para obtener un analisis de detallado y poder filtrar las propias consultas usaria las herramientas de monitoreo especificas de la base de datos, generando su plan de ejecucion. Buscaria operaciones como escaneos completos de tabla, sorts costosos en memoria y los costos relativos dec ada paso para identificar el cuello de botella principal
+Una vez indenficado el problema, revisaria si existen indices especificos para esa consulta, en caso de existir, validar si son apropiados y los mejores para ese caso. Si el cuello de botella sigue apretando revisaria directamente la sintasis de la consulta para simplificarla, menos es mas. Evitar SELECT * para cargar solo las columnas necesarias y optimizar el uso de los conectores. Filtrar los datos antes de ser agrupados seria clave.
+Para descartar problemas hasta este punto verificaria el estado del servidor y los parametros de configuracion del motor, la poca asignacion de memoria RAM y el tamaño del cache pueden ser los causantes.
+Si el tiempo de mejora no es significativo hasta este punto revisaria de manera detallada el diseño de la tabla y si las relaciones son apropiadas. Para pensar en una desnormalizacion estrategica como ultimo recurso.
+
+Que estrategias usarias para cachear resultados de consultas frecuentes.
+Para optimizar el cacheo de datos en consultas frecuentes empezar por configurar la base de datos para que permita o facillite el uso de estos. Usar herramientas externas como redis para llevar un control mas fuerte y un mejor analisis de los datos cacheados. Si lo que buscamos es optimizacion dentro del codigo pensaria en usar paquetes o modulos del framework o lenguaje de programacion que lleven la misma logica del codigo y poder mejorar la gestion interna de estos datos dentro de la API.
+
+Describe las mejores practicas para prevenir inyeccion SQL en consultas automatizadas
+Teniendo en cuenta que es una de las vulnerabilidades mas comunes hoy en dia, aplicar buenas practicas y las mejores tecnicas para prevenirlo es fundamental. Lo primero seria las consultas parametrizadas, que es lo mas recomendado, en lugar de concatenar directamente los valores en la cadena de SQL, definir placeholders en la consulta. El metodo de plantillas implementado dentro de mi prueba tecnica seria lo mejor. Sin olvidar limpiar la consulta antes de realizarla.
+
+Como manejarias credenciales de aceso a la base de datos en un ambiente de automatizacion
+Lo primero seria configurar todas las variables de entorno y datos sensibles fuera del codigo. Lo sigueinte seria gestionar los accesos de los usuarios, clientes y administradores de manera distinta, restingiendo el acceso a la informacion y las rutas que puedan contenir informacion delicada. La autenticacion de tokens para el "inicio de sesion" dentro de la api, con tiempos de expiracion justos que no dejen puertas abiertas por mucho tiempo. Hashear la informacion importante como contraseñas de usuario dentro de la base de datos para que solo el creador del usuario y conocedor de la contraseña sea capaz de acceder con su usuario.
+
+Que patrones de diseño considerarias para implementar en un sistema de consultas automatizadas
+La arquitectuta de capas donde cada capa reprensente un rol especifico con un alcance definido. Empezando por los tipados y esquemas para definir bien la estructura y la validacion de los datos. Los modelos para definir la interaccion de los esquemas con la base de datos, ya sea con un ORM o consultas directas. Los servicios serian la siguiente capa donde se aplica la logica de negocio. Combinacion de multiples datos y reglas de negocio. Los controladores para la gestion de entradas a la api y la presentacion de los modelos con la logica de negocio ya aplicada. Y por ultimo serian las rutas, definir los endpoints y mapear las solucitudes entrantes con los controladores apropiados.
+
+Explica como implementarias reintentos automaticos para consultas que fallan temporalmente.
+Empezaria por analizar bien cual es la consulta que se esta realizando y buscar de evitar los fallos. Si son imposibles de controlar entonces declararia un numero de reintentos cada cierto tiempo, declarando las veces que se realizara la consulta y cada cuanto se realizaran los reintentos, tener una tabla donde se almacenen las consultas exitosas y las fallidas para indentificar patrones en el comportamiento de la consulta.
