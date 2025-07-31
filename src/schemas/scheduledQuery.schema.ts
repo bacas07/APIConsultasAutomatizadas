@@ -1,26 +1,33 @@
-import { Schema, model, Types } from 'mongoose';
-import type { ScheduledQueryMongoose } from '../types/types.js';
+import mongoose, { Schema, Document, Types } from 'mongoose';
+import { ScheduledQueryMongoose, ScheduledQuery } from '../types/types.js';
 
-const ScheduledQuerySchema = new Schema<ScheduledQueryMongoose>(
+const ScheduledQuerySchema: Schema = new Schema<ScheduledQuery>(
   {
+    name: { type: String, required: true },
     queryTemplateId: {
       type: Schema.Types.ObjectId,
       ref: 'QueryTemplate',
       required: true,
     },
-    nextExecutionTime: { type: Date },
-    isActive: { type: Boolean, default: true },
     parametersValues: [
       {
         name: { type: String, required: true },
-        value: { type: Schema.Types.Mixed, required: true },
+        value: { type: Schema.Types.Mixed },
       },
     ],
-    lastExecutionTime: {
-      type: Date,
-    },
-    cronExpression: {
-      type: String,
+    cronExpression: { type: String, required: true },
+    isActive: { type: Boolean, default: true },
+    lastExecutionTime: { type: Date, default: null },
+    nextExecutionTime: { type: Date, default: null },
+    reportConfig: {
+      type: {
+        format: { type: String, enum: ['CSV'], required: true },
+        emailRecipients: [{ type: String, required: true }],
+        emailSubjectTemplate: { type: String },
+        emailBodyTemplate: { type: String },
+        fileNameTemplate: { type: String },
+      },
+      required: false,
     },
   },
   {
@@ -28,8 +35,9 @@ const ScheduledQuerySchema = new Schema<ScheduledQueryMongoose>(
   }
 );
 
-export const ScheduledQueryModel = model<ScheduledQueryMongoose>(
+const ScheduledQueryModel = mongoose.model<ScheduledQueryMongoose>(
   'ScheduledQuery',
-  ScheduledQuerySchema,
-  'ScheduledQueries'
+  ScheduledQuerySchema
 );
+
+export default ScheduledQueryModel;
